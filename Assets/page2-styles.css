@@ -1,0 +1,48 @@
+#page2 {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+#page2 .overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* 添加透明度和位置过渡效果 */
+}
+#page2.show .overlay {
+    transform: translate(-150%, -50%); /* 向左移动 */
+}
+#page2 .button {
+    position: absolute;
+    top: 70%; /* 调整按钮位置 */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 60px;
+    border: 2px solid white;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px); /* 高斯模糊效果 */
+    color: white;
+    font-size: 24px;
+    text-align: center;
+    line-height: 60px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* 添加透明度和缩放过渡效果 */
+}
+#page2.show .button {
+    opacity: 1;
+}
+#page2 .button:hover {
+    transform: translate(-50%, -50%) scale(1.1); /* 鼠标悬浮时变大 */
+}

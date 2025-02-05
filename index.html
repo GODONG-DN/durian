@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="./favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Durian工作室</title>
+    <link rel="stylesheet" href="Assets/styles.css">
+    <link rel="stylesheet" href="Assets/page2-styles.css">
+    <link rel="stylesheet" href="Assets/page3-styles.css">
+</head>
+
+<body>
+    <main id="page1">
+        <img src="Assets/Homepage image.png" alt="首页图片">
+        <div class="overlay">Durian工作室</div>
+        <div class="scroll-down">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </main>
+    
+    <main id="page2">
+        <img src="Assets/MinecraftServer.png" alt="Minecraft服务器背景">
+        <div class="overlay">Minecraft服务器</div>
+        <div class="button">进入</div>
+    </main>
+    
+    <main id="page3">
+        <img src="Assets/MinecraftServer.png" alt="Minecraft服务器背景">
+        <div class="back-button" onclick="goBack()">←</div>
+        <div class="title">服务器日志</div>
+        <div class="center-box" id="output-box"></div>
+    </main>
+    
+    <footer></footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function goBack() {
+            document.getElementById('page3').classList.remove('show');
+            setTimeout(function () {
+                document.getElementById('page3').style.display = 'none';
+                document.getElementById('page2').style.display = 'block';
+                setTimeout(function () {
+                    document.getElementById('page2').style.opacity = '1';
+                    history.pushState(null, null, '/MinecraftServer/');
+                }, 10);
+            }, 300);
+        }
+
+        document.addEventListener('wheel', function (event) {
+            if (event.deltaY > 0 && document.getElementById('page1').style.display !== 'none') {
+                document.getElementById('page1').style.opacity = '0';
+                setTimeout(function () {
+                    document.getElementById('page1').style.display = 'none';
+                    document.getElementById('page2').style.display = 'block';
+                    setTimeout(function () {
+                        document.getElementById('page2').classList.add('show');
+                        document.getElementById('page2').style.opacity = '1';
+                        history.pushState(null, null, '/MinecraftServer/');
+                    }, 10);
+                }, 300);
+            } else if (event.deltaY < 0 && document.getElementById('page2').style.display !== 'none') {
+                document.getElementById('page2').style.opacity = '0';
+                setTimeout(function () {
+                    document.getElementById('page2').style.display = 'none';
+                    document.getElementById('page1').style.display = 'block';
+                    setTimeout(function () {
+                        document.getElementById('page1').style.opacity = '1';
+                        history.pushState(null, null, '/');
+                    }, 10);
+                }, 300);
+            }
+        });
+
+        document.querySelector('#page2 .button').addEventListener('click', function () {
+            document.getElementById('page2').style.opacity = '0';
+            setTimeout(function () {
+                document.getElementById('page2').style.display = 'none';
+                document.getElementById('page3').style.display = 'block';
+                setTimeout(function () {
+                    document.getElementById('page3').classList.add('show');
+                    document.getElementById('page3').style.opacity = '1';
+                    history.pushState(null, null, '/MinecraftServer/Instance');
+                }, 10);
+            }, 300);
+        });
+
+        // 添加 jQuery Ajax GET 请求
+        function fetchRemoteServiceList() {
+            $.ajax({
+                url: 'http://ld.frp.one:36826/api/service/remote_services_system',
+                method: 'GET',
+                data: {
+                    apikey: 'ec73e8d8071c4d7ba7cf19a23cbe30d2'
+                },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 200) {
+                        console.log('远程节点列表:', response.data);
+                        const outputBox = document.getElementById('output-box');
+                        outputBox.innerHTML = ''; // 清空之前的内容
+                        response.data.forEach(node => {
+                            const nodeElement = document.createElement('div');
+                            nodeElement.innerHTML = `
+                                <p>版本: ${node.version}</p>
+                                <p>系统: ${node.system.type} ${node.system.platform}</p>
+                                <p>运行实例: ${node.instance.running}/${node.instance.total}</p>
+                            `;
+                            outputBox.appendChild(nodeElement);
+                        });
+                        outputBox.scrollTop = outputBox.scrollHeight; // 将滚动条设置到最底部
+                    } else {
+                        console.error('获取节点列表失败:', response.status);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('请求错误:', error);
+                }
+            });
+        }
+
+        function fetchOutputLog(uuid, daemonId, size = null) {
+            $.ajax({
+                url: 'http://ld.frp.one:36826/api/protected_instance/outputlog',
+                method: 'GET',
+                data: {
+                    apikey: 'ec73e8d8071c4d7ba7cf19a23cbe30d2',
+                    uuid: uuid,
+                    daemonId: daemonId,
+                    size: size
+                },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 200) {
+                        console.log('输出日志:', response.data);
+                        const outputBox = document.getElementById('output-box');
+                        outputBox.innerHTML = `<pre>${response.data}</pre>`;
+                        outputBox.scrollTop = outputBox.scrollHeight; // 将滚动条设置到最底部
+                    } else {
+                        console.error('获取输出日志失败:', response.status);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('请求错误:', error);
+                }
+            });
+        }
+
+        // CSS 样式
+        const styles = `
+            <style>
+                .log-container {
+                    font-family: 'Courier New', monospace;
+                    color: #e0e0e0;
+                    border-radius: 4px;
+                    padding: 10px;
+                }
+                .aligned-log {
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    text-align: left;
+                    line-height: 1.4;
+                    font-size: 12px;
+                }
+                .key-events {
+                    margin-bottom: 15px;
+                }
+                details summary {
+                    cursor: pointer;
+                    color: #4a9eff;
+                }
+            </style>
+        `;
+        document.head.insertAdjacentHTML('beforeend', styles);
+
+        function formatLogLine(line) {
+            const regex = /\[(\d{2}:\d{2}:\d{2})\] \[([^/]+)\/([A-Z]+)\]:(.*)/;
+            const match = line.match(regex);
+            if (match) {
+                const [, timestamp, thread, level, message] = match;
+                return `<span class="timestamp">${timestamp}</span> <span class="thread">[${thread}/${level}]</span>: ${message}`;
+            }
+            return line;
+        }
+
+        function processMinecraftServerLog(logData) {
+            const lines = logData.split('\n')
+                .filter(line => line.trim() !== '')
+                .map(line => formatLogLine(line.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').replace(/\r/g, '').trim()));
+            return { fullLog: lines };
+        }
+
+        function displayServerLog(uuid, daemonId) {
+            $.ajax({
+                url: 'http://ld.frp.one:36826/api/protected_instance/outputlog',
+                method: 'GET',
+                data: { apikey: 'ec73e8d8071c4d7ba7cf19a23cbe30d2', uuid: uuid, daemonId: daemonId },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 200) {
+                        const processedLog = processMinecraftServerLog(response.data);
+                        const outputBox = document.getElementById('output-box');
+                        outputBox.innerHTML = `
+                            <div class="log-container">
+                                <pre class="aligned-log">${processedLog.fullLog.join('\n')}</pre>
+                            </div>
+                        `;
+                        outputBox.scrollTop = outputBox.scrollHeight; // 自动滚动到底部
+                         setInterval(() => {
+                    outputBox.scrollTop = outputBox.scrollHeight;
+                }, 1000);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('日志获取失败:', error);
+                    document.getElementById('output-box').innerHTML = `<p style="color: #ff5555;">日志加载失败，请稍后重试。</p>`;
+                }
+            });
+        }
+
+        // 页面加载时调用
+        $(document).ready(function () {
+            displayServerLog('cb45755906ff47e9b5d70b9be4430f72', '8cf2ee9f5792485a8ba3703fb9e302dd');
+        });
+    </script>
+</body>
+
+</html>
